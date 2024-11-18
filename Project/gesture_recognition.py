@@ -20,10 +20,10 @@ class GestureRecognition:
         with open("registered_gestures.pkl", "wb") as file:
             pickle.dump(self.registered_gestures, file)
 
-    def register_gestures(self):
-        print("Registering gestures: Perform a gesture and assign a function.")
+    def register_gestures(self, control_name):
+        print(f"Registering gesture for {control_name}: Perform a gesture.")
         cap = cv2.VideoCapture(0)
-        
+
         while True:
             success, image = cap.read()
             if not success:
@@ -34,9 +34,8 @@ class GestureRecognition:
 
             if results.multi_hand_landmarks:
                 for hand_landmarks in results.multi_hand_landmarks:
-                    gesture_name = input("Enter gesture name or action (e.g., 'volume up', 'brightness down'): ")
-                    self.registered_gestures[gesture_name] = hand_landmarks.landmark
-                    print(f"Gesture '{gesture_name}' registered.")
+                    self.registered_gestures[control_name] = hand_landmarks.landmark
+                    print(f"Gesture for '{control_name}' registered.")
                     self.save_registered_gestures()
                     break
 
@@ -49,7 +48,7 @@ class GestureRecognition:
 
     def start_gesture_control(self):
         cap = cv2.VideoCapture(0)
-        
+
         while cap.isOpened():
             success, image = cap.read()
             if not success:
@@ -72,7 +71,7 @@ class GestureRecognition:
         cv2.destroyAllWindows()
 
     def is_gesture_match(self, current_landmarks, registered_landmarks):
-        threshold = 0.1  # Matching threshold
+        threshold = 0.1
         for i in range(len(current_landmarks)):
             dist = ((current_landmarks[i].x - registered_landmarks[i].x) ** 2 +
                     (current_landmarks[i].y - registered_landmarks[i].y) ** 2) ** 0.5
