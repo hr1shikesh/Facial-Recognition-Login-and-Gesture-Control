@@ -1,102 +1,110 @@
 import tkinter as tk
-from tkinter import messagebox
-from tkinter import ttk
+from tkinter import ttk, messagebox
 from facial_recognition import FacialRecognition
 from gesture_recognition import GestureRecognition
+from system_controls import SYSTEM_CONTROLS  # A dictionary of system controls
 
-class MainApp:
+class SignInApp:
     def __init__(self, root):
         self.root = root
-        self.root.title("HCI System: Gesture and Facial Recognition Login")
+        self.root.title("HCI System: Sign In/Sign Up")
         self.root.geometry("800x600")
-        self.root.configure(bg="#1e1e1e")  # Dark background for a sleek look
+        self.root.configure(bg="#1e1e1e")
         self.root.resizable(False, False)
-
-        self.camera_frame = tk.Label(self.root, bg="#1e1e1e")
-        self.camera_frame.pack(pady=20)
-
-        self.face_recog = FacialRecognition(self.camera_frame)
-        self.gesture_recog = GestureRecognition(self.camera_frame)
 
         self.create_widgets()
 
     def create_widgets(self):
-        # Title Card
-        title_label = tk.Label(self.root, text="HCI System\nGesture and Facial Recognition Login", 
-                               font=("Helvetica", 24, "bold"), fg="#4CAF50", bg="#1e1e1e")
+        title_label = tk.Label(self.root, text="Sign In or Sign Up", font=("Helvetica", 24, "bold"), fg="#4CAF50", bg="#1e1e1e")
         title_label.pack(pady=20)
 
-        # Buttons with glowing effect on hover and click
-        self.create_glowing_button("Login with Face", self.face_login)
-        self.create_glowing_button("Control System with Gestures", self.control_system)
-        self.create_glowing_button("Register Face and Gestures", self.register_user)
+        tk.Button(self.root, text="Sign In", font=("Helvetica", 14), command=self.sign_in).pack(pady=10)
+        tk.Button(self.root, text="Sign Up", font=("Helvetica", 14), command=self.sign_up).pack(pady=10)
 
-    def create_glowing_button(self, text, command):
-        # Create a button with a glow effect
-        button = tk.Button(self.root, text=text, font=("Helvetica", 14, "bold"), fg="white", bg="#333333", 
-                           relief="flat", padx=20, pady=10, command=command)
-        button.pack(pady=10)
-        
-        # Add hover effect for glow
-        button.bind("<Enter>", lambda e: button.config(bg="#4CAF50"))
-        button.bind("<Leave>", lambda e: button.config(bg="#333333"))
-        
-        # Add click effect
-        button.bind("<ButtonPress-1>", lambda e: button.config(bg="#66bb6a"))
-        button.bind("<ButtonRelease-1>", lambda e: button.config(bg="#4CAF50"))
+    def sign_in(self):
+        messagebox.showinfo("Sign In", "Sign In Successful!")
+        self.open_main_gui()
 
-    def face_login(self):
-        name = self.prompt_for_name("Enter your name for login:")
-        if name:
-            match_percentage = self.face_recog.login(name)
-            self.handle_login_result(match_percentage)
+    def sign_up(self):
+        messagebox.showinfo("Sign Up", "Sign Up Successful!")
+        self.open_main_gui()
+
+    def open_main_gui(self):
+        self.root.destroy()
+        new_root = tk.Tk()
+        MainApp(new_root).run()
+
+    def run(self):
+        self.root.mainloop()
+
+
+class MainApp:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("HCI System: Main Page")
+        self.root.geometry("800x600")
+        self.root.configure(bg="#1e1e1e")
+        self.root.resizable(False, False)
+
+        self.face_recog = FacialRecognition(None)  # Camera frame not needed here
+        self.gesture_recog = GestureRecognition(None)
+
+        self.create_widgets()
+
+    def create_widgets(self):
+        title_label = tk.Label(self.root, text="HCI System: Main Page", font=("Helvetica", 24, "bold"), fg="#4CAF50", bg="#1e1e1e")
+        title_label.pack(pady=20)
+
+        tk.Button(self.root, text="Register Face Profile", font=("Helvetica", 14), command=self.register_face).pack(pady=10)
+        tk.Button(self.root, text="Register Gestures", font=("Helvetica", 14), command=self.register_gestures).pack(pady=10)
+        tk.Button(self.root, text="Control System with Gestures", font=("Helvetica", 14), command=self.control_system).pack(pady=10)
+
+    def register_face(self):
+        self.face_recog.register_face("New User")
+
+    def register_gestures(self):
+        self.root.destroy()
+        new_root = tk.Tk()
+        GestureRegistrationApp(new_root).run()
 
     def control_system(self):
         self.gesture_recog.start_gesture_control()
 
-    def register_user(self):
-        name = self.prompt_for_name("Enter your name for registration:")
-        if name:
-            registered = self.face_recog.register_face(name)
-            if registered:
-                messagebox.showinfo("Registration Success", f"Face registered successfully for {name}!")
-            else:
-                messagebox.showerror("Registration Failed", "Face registration failed. Please try again.")
+    def run(self):
+        self.root.mainloop()
 
-    def prompt_for_name(self, prompt_text):
-        # Prompt to enter name
-        name_window = tk.Toplevel(self.root)
-        name_window.title("Enter Name")
-        name_window.geometry("300x150")
-        name_window.configure(bg="#1e1e1e")
 
-        label = tk.Label(name_window, text=prompt_text, font=("Helvetica", 12), fg="white", bg="#1e1e1e")
-        label.pack(pady=10)
+class GestureRegistrationApp:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("HCI System: Gesture Registration")
+        self.root.geometry("800x600")
+        self.root.configure(bg="#1e1e1e")
+        self.root.resizable(False, False)
 
-        name_entry = tk.Entry(name_window, font=("Helvetica", 14), fg="black", bg="#e0e0e0", bd=2, relief="solid")
-        name_entry.pack(pady=5)
-        name_entry.focus_set()
+        self.gesture_recog = GestureRecognition(None)
+        self.selected_control = tk.StringVar()
 
-        def submit_name():
-            name = name_entry.get()
-            if name:
-                name_window.destroy()
-                return name
-            else:
-                messagebox.showerror("Error", "Name cannot be empty!")
+        self.create_widgets()
 
-        submit_button = tk.Button(name_window, text="Submit", font=("Helvetica", 12), fg="white", bg="#4CAF50", 
-                                  command=submit_name)
-        submit_button.pack(pady=10)
+    def create_widgets(self):
+        title_label = tk.Label(self.root, text="Register Gestures", font=("Helvetica", 24, "bold"), fg="#4CAF50", bg="#1e1e1e")
+        title_label.pack(pady=20)
 
-        name_window.wait_window(name_window)
-        return name_entry.get()
+        control_label = tk.Label(self.root, text="Select System Control:", font=("Helvetica", 14), fg="white", bg="#1e1e1e")
+        control_label.pack(pady=10)
 
-    def handle_login_result(self, match_percentage):
-        if match_percentage > 50:
-            messagebox.showinfo("Login Success", f"Welcome back! Match: {match_percentage:.2f}%")
+        control_dropdown = ttk.Combobox(self.root, textvariable=self.selected_control, values=list(SYSTEM_CONTROLS.keys()), font=("Helvetica", 12))
+        control_dropdown.pack(pady=10)
+
+        tk.Button(self.root, text="Open Camera for Gesture Input", font=("Helvetica", 14), command=self.open_camera).pack(pady=10)
+
+    def open_camera(self):
+        selected_control = self.selected_control.get()
+        if not selected_control:
+            messagebox.showerror("Error", "Please select a system control.")
         else:
-            messagebox.showerror("Login Failed", f"Login failed. Match: {match_percentage:.2f}%")
+            self.gesture_recog.register_gestures(SYSTEM_CONTROLS[selected_control])
 
     def run(self):
         self.root.mainloop()
